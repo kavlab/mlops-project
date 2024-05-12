@@ -1,0 +1,26 @@
+version: '3.7'
+
+services:
+  minio:
+    container_name: mlops-minio
+    build: ./minio
+    ports:
+      - "4000:9000"  # Port for S3 Client Requests
+      - "4001:9001"  # Port for the MinIO Console
+    env_file:
+      - ./minio/default.env
+    volumes:
+      - mlops_minio_data:/data
+    
+  jenkins:
+    container_name: mlops-jenkins
+    build: ./jenkins
+    ports:
+      - "4080:8080"
+      - "4500:50000"
+    volumes:
+      - mlops_jenkins_home:/var/jenkins_home
+
+volumes:
+  mlops_minio_data:
+  mlops_jenkins_home:
