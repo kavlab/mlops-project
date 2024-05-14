@@ -2,12 +2,38 @@ pipeline {
     agent any
 
     stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'dev', url: 'https://github.com/kavlab/mlops-project/'
+            }
+        }
+
         stage('Prepare') {
             steps {
                 dir('src') {
-                    sh '''python3 -m venv .venv
-                    . .venv/bin/activate
-                    pip install -r ./requirements.txt'''
+                    sh 'python3 -m venv .venv'
+                    sh '. .venv/bin/activate'
+                    sh 'pip install -r ./requirements.txt'
+                    sh 'pip install dvc dvc-s3'
+                }
+            }
+        }
+
+        stage('Configure DVC') {
+            steps {
+                dir('src') {
+                    script {
+                        sh 'dvc init'
+                        sh 'dvc remote add -d data_storage s3://mlops-files/data'
+                        sh 'dvc remote modify data_storage endpointurl params.S3_URL'
+                        sh 'dvc remote modify data_storage access_key_id params.S3_ACCESS_KEY_ID'
+                        sh 'dvc remote modify data_storage secret_access_key params.S3_SECRET_ACCESS_KEY'
+                        sh 'dvc remote modify data_storage private true'
+                        sh 'dvc remote modify data_storage use_ssl false'
+                        sh 'mkdir datasets'
+                        sh 'dvc add datasets'
+                    }
                 }
             }
         }
@@ -15,8 +41,8 @@ pipeline {
         stage('Load data') {
             steps {
                 dir('src') {
-                    sh '''. .venv/bin/activate
-                    python3 ./data/load_dataset.py'''
+                    sh '. .venv/bin/activate'
+                    sh 'python3 ./data/load_dataset.py'
                 }
             }
         }
@@ -24,8 +50,8 @@ pipeline {
         stage('Data processing') {
             steps {
                 dir('src') {
-                    sh '''. .venv/bin/activate
-                    python3 ./features/build_features.py'''
+                    sh '. .venv/bin/activate'
+                    sh 'python3 ./features/build_features.py'
                 }
             }
         }
@@ -33,8 +59,8 @@ pipeline {
         stage('Model training') {
             steps {
                 dir('src') {
-                    sh '''. .venv/bin/activate
-                    python3 ./models/train_model.py'''
+                    sh '. .venv/bin/activate'
+                    sh 'python3 ./models/train_model.py'
                 }
             }
         }
