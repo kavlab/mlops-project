@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Prepare') {
+            steps {
+                dir('src') {
+                    sh '''python3 -m venv .venv
+                    . .venv/bin/activate
+                    pip install -r ./requirements.txt'''
+                }
+            }
+        }
+
+        stage('Load data') {
+            steps {
+                dir('src') {
+                    sh '''. .venv/bin/activate
+                    python3 ./data/load_dataset.py'''
+                }
+            }
+        }
+
+        stage('Data processing') {
+            steps {
+                dir('src') {
+                    sh '''. .venv/bin/activate
+                    python3 ./features/build_features.py'''
+                }
+            }
+        }
+
+        stage('Model training') {
+            steps {
+                dir('src') {
+                    sh '''. .venv/bin/activate
+                    python3 ./models/train_model.py'''
+                }
+            }
+        }
+
+        stage('Push model and data') {
+            steps {
+                sh 'dvc push'
+            }
+        }
+    }
+}
