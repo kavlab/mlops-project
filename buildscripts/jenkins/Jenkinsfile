@@ -1,13 +1,48 @@
 pipeline {
     agent any
 
+    parameters {
+        string(name: 'S3_URL', defaultValue: 'http://mlops-minio:4000', description: '')
+        string(name: 'S3_ACCESS_KEY_ID', defaultValue: '', description: '')
+        string(name: 'S3_SECRET_ACCESS_KEY', defaultValue: '', description: '')
+    }
+
     stages {
+
+        stage('Checkout') {
+            steps {
+                //sh 'rm -rf mlops-project'
+                git branch: 'dev', url: 'https://github.com/kavlab/mlops-project/'
+            }
+        }
+
         stage('Prepare') {
             steps {
                 dir('src') {
                     sh '''python3 -m venv .venv
                     . .venv/bin/activate
-                    pip install -r ./requirements.txt'''
+                    pip install -r ./requirements.txt
+                    pip install dvc dvc-s3'''
+                }
+            }
+        }
+
+        stage('Configure DVC') {
+            steps {
+                dir('src') {
+                    script {
+                        sh '''. .venv/bin/activate
+                        cd ..
+                        dvc init -f
+                        dvc remote add -f -d data_storage s3://mlops-files/data
+                        dvc remote modify data_storage endpointurl ${env.S3_URL}
+                        dvc remote modify data_storage access_key_id ${env.S3_ACCESS_KEY_ID}
+                        dvc remote modify data_storage secret_access_key ${env.S3_SECRET_ACCESS_KEY}
+                        dvc remote modify data_storage private true
+                        dvc remote modify data_storage use_ssl false
+                        mkdir src/datasets
+                        dvc add src/datasets'''
+                    }
                 }
             }
         }
@@ -41,7 +76,10 @@ pipeline {
 
         stage('Push model and data') {
             steps {
-                sh 'dvc push'
+                dir('src') {
+                    sh '''. .venv/bin/activate
+                    dvc push'''
+                }
             }
         }
     }
