@@ -18,8 +18,7 @@ pipeline {
                 dir('src') {
                     sh """python3 -m venv .venv
                     . .venv/bin/activate
-                    pip install -r ./requirements.txt
-                    pip install dvc dvc-s3"""
+                    pip install -r ./requirements.txt"""
                 }
             }
         }
@@ -30,16 +29,22 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'S3', passwordVariable: 'S3_SECRET_ACCESS_KEY', usernameVariable: 'S3_ACCESS_KEY_ID')]) {
                         sh """. .venv/bin/activate
                         cd ..
-                        dvc init -f
                         dvc remote add -f -d data_storage s3://mlops-files/data
-                        echo "${params.S3_URL}"
                         dvc remote modify data_storage endpointurl ${params.S3_URL}
                         dvc remote modify data_storage access_key_id ${S3_ACCESS_KEY_ID}
                         dvc remote modify data_storage secret_access_key ${S3_SECRET_ACCESS_KEY}
                         dvc remote modify data_storage use_ssl false
-                        rm -rf src/datasets
-                        mkdir src/datasets
-                        dvc add src/datasets"""
+                        dvc remote add -f -d model_storage s3://mlops-files/models
+                        dvc remote modify model_storage endpointurl ${params.S3_URL}
+                        dvc remote modify model_storage access_key_id ${S3_ACCESS_KEY_ID}
+                        dvc remote modify model_storage secret_access_key ${S3_SECRET_ACCESS_KEY}
+                        dvc remote modify model_storage use_ssl false
+                        """
+
+                        sh "rm -rf datasets"
+                        sh "mkdir datasets"
+                        sh "rm -rf trained_models"
+                        sh "mkdir trained_models"
                     }
                 }
             }
@@ -63,6 +68,15 @@ pipeline {
             }
         }
 
+        stage('Push data') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    dvc push -r data_storage"""
+                }
+            }
+        }
+
         stage('Model training') {
             steps {
                 dir('src') {
@@ -72,11 +86,11 @@ pipeline {
             }
         }
 
-        stage('Push model and data') {
+        stage('Push model') {
             steps {
                 dir('src') {
                     sh """. .venv/bin/activate
-                    dvc push"""
+                    dvc push -r model_storage"""
                 }
             }
         }
