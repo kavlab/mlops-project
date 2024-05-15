@@ -3,15 +3,12 @@ pipeline {
 
     parameters {
         string(name: 'S3_URL', defaultValue: 'http://mlops-minio:4000', description: '')
-        string(name: 'S3_ACCESS_KEY_ID', defaultValue: '', description: '')
-        string(name: 'S3_SECRET_ACCESS_KEY', defaultValue: '', description: '')
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                //sh 'rm -rf mlops-project'
                 git branch: 'dev', url: 'https://github.com/kavlab/mlops-project/'
             }
         }
@@ -19,10 +16,10 @@ pipeline {
         stage('Prepare') {
             steps {
                 dir('src') {
-                    sh '''python3 -m venv .venv
+                    sh """python3 -m venv .venv
                     . .venv/bin/activate
                     pip install -r ./requirements.txt
-                    pip install dvc dvc-s3'''
+                    pip install dvc dvc-s3"""
                 }
             }
         }
@@ -30,18 +27,19 @@ pipeline {
         stage('Configure DVC') {
             steps {
                 dir('src') {
-                    script {
-                        sh '''. .venv/bin/activate
+                    withCredentials([usernamePassword(credentialsId: 'S3', passwordVariable: 'S3_SECRET_ACCESS_KEY', usernameVariable: 'S3_ACCESS_KEY_ID')]) {
+                        sh """. .venv/bin/activate
                         cd ..
                         dvc init -f
                         dvc remote add -f -d data_storage s3://mlops-files/data
-                        dvc remote modify data_storage endpointurl ${env.S3_URL}
-                        dvc remote modify data_storage access_key_id ${env.S3_ACCESS_KEY_ID}
-                        dvc remote modify data_storage secret_access_key ${env.S3_SECRET_ACCESS_KEY}
-                        dvc remote modify data_storage private true
+                        echo "${params.S3_URL}"
+                        dvc remote modify data_storage endpointurl ${params.S3_URL}
+                        dvc remote modify data_storage access_key_id ${S3_ACCESS_KEY_ID}
+                        dvc remote modify data_storage secret_access_key ${S3_SECRET_ACCESS_KEY}
                         dvc remote modify data_storage use_ssl false
+                        rm -rf src/datasets
                         mkdir src/datasets
-                        dvc add src/datasets'''
+                        dvc add src/datasets"""
                     }
                 }
             }
@@ -50,8 +48,8 @@ pipeline {
         stage('Load data') {
             steps {
                 dir('src') {
-                    sh '''. .venv/bin/activate
-                    python3 ./data/load_dataset.py'''
+                    sh """. .venv/bin/activate
+                    python3 ./data/load_dataset.py"""
                 }
             }
         }
@@ -59,8 +57,8 @@ pipeline {
         stage('Data processing') {
             steps {
                 dir('src') {
-                    sh '''. .venv/bin/activate
-                    python3 ./features/build_features.py'''
+                    sh """. .venv/bin/activate
+                    python3 ./features/build_features.py"""
                 }
             }
         }
@@ -68,8 +66,8 @@ pipeline {
         stage('Model training') {
             steps {
                 dir('src') {
-                    sh '''. .venv/bin/activate
-                    python3 ./models/train_model.py'''
+                    sh """. .venv/bin/activate
+                    python3 ./models/train_model.py"""
                 }
             }
         }
@@ -77,8 +75,8 @@ pipeline {
         stage('Push model and data') {
             steps {
                 dir('src') {
-                    sh '''. .venv/bin/activate
-                    dvc push'''
+                    sh """. .venv/bin/activate
+                    dvc push"""
                 }
             }
         }
