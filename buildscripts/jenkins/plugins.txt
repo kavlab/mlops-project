@@ -1,0 +1,17 @@
+cloudbees-folder
+antisamy-markup-formatter
+build-timeout
+credentials-binding
+ssh-agent
+timestamper
+ws-cleanup
+ant
+gradle
+workflow-aggregator
+github-branch-source
+pipeline-github-lib
+pipeline-stage-view
+git
+ssh-slaves
+matrix-auth
+pam-auth
