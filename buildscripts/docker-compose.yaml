@@ -11,6 +11,8 @@ services:
       - ./minio/default.env
     volumes:
       - mlops_minio_data:/data
+    networks:
+      - mlops_network
     
   jenkins:
     container_name: mlops-jenkins
@@ -20,7 +22,11 @@ services:
       - "4500:50000"
     volumes:
       - mlops_jenkins_home:/var/jenkins_home
+    networks:
+      - mlops_network
 
 volumes:
   mlops_minio_data:
   mlops_jenkins_home:
+networks:
+  mlops_network:
