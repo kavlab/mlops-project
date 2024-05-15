@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 import pickle
 
 # Чтение данных
-penguins = pd.read_csv("../datasets/penguins.csv", sep=",")
+penguins = pd.read_csv("datasets/penguins.csv", sep=",")
 
 # Разделяем данные на обучающие и тестовые наборы
 X = penguins.drop('species', axis=1)
@@ -20,4 +20,4 @@ score = model.score(X_test, y_test)
 print(f"\nModel score: {score}\n")
 
 # Сохранение обученной модели
-pickle.dump(model, open("../trained_models/model_pickle.pkl", "wb"))
+pickle.dump(model, open("trained_models/model_pickle.pkl", "wb"))

@@ -4,4 +4,4 @@ from palmerpenguins import load_penguins
 penguins = load_penguins()
 
 # Сохраняем наборы данных в файл CSV
-penguins.to_csv("../datasets/penguins.csv", index=False)
+penguins.to_csv("datasets/penguins.csv", index=False)
