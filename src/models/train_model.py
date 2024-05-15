@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 import pickle
 
 # Чтение данных
-penguins = pd.read_csv("../datasets/train_penguins.csv", sep=",")
+penguins = pd.read_csv("../datasets/penguins.csv", sep=",")
 
 # Разделяем данные на обучающие и тестовые наборы
 X = penguins.drop('species', axis=1)
