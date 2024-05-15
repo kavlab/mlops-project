@@ -88,6 +88,9 @@ pipeline {
             steps {
                 sh 'git add src/datasets.dvc'
                 sh 'git commit -m "change dataset"'
+                sshagent(['jenkins_ssh_github']) {
+                    sh 'git push origin dev'
+                }
             }
         }
 
