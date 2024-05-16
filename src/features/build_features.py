@@ -17,10 +17,11 @@ def get_transform_column(df):
     return df
 
 
-penguins = pd.read_csv("datasets/penguins.csv", sep=",")
+if __name__ == '__main__':
+    penguins = pd.read_csv("datasets/penguins.csv", sep=",")
 
-# Обновленный датафрейм
-update_penguins = get_transform_column(penguins)
+    # Обновленный датафрейм
+    update_penguins = get_transform_column(penguins)
 
-# Сохраняем наборы данных в файл CSV
-update_penguins.to_csv("datasets/penguins.csv", index=False)
+    # Сохраняем наборы данных в файл CSV
+    update_penguins.to_csv("datasets/penguins.csv", index=False)
