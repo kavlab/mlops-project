@@ -87,7 +87,7 @@ pipeline {
         stage('Commit data changes') {
             steps {
                 sh 'git add src/datasets.dvc'
-                sh 'git commit -m "change dataset"'
+                sh 'git commit -m "change dataset" || true'
                 sshagent(['jenkins_ssh_github']) {
                     sh 'git push origin dev'
                 }
@@ -103,20 +103,31 @@ pipeline {
             }
         }
 
-        stage('Push model') {
-            steps {
-                dir('src') {
-                    sh """. .venv/bin/activate
-                    dvc push -r model_storage"""
-                }
-            }
-        }
-
         stage('Model testing') {
             steps {
                 dir('src') {
                     sh """. .venv/bin/activate
                     pytest tests/*.py"""
+                }
+            }
+        }
+
+        stage('Push model') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    dvc add trained_models
+                    dvc push -r model_storage"""
+                }
+            }
+        }
+
+        stage('Commit model changes') {
+            steps {
+                sh 'git add src/trained_models.dvc'
+                sh 'git commit -m "change model" || true'
+                sshagent(['jenkins_ssh_github']) {
+                    sh 'git push origin dev'
                 }
             }
         }
