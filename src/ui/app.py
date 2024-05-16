@@ -2,8 +2,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import streamlit as st
-from src.features.build_features import get_transform_column
-from src.models.train_model import X_train
+from build_features import get_transform_column
 
 
 def get_model_load():
@@ -57,7 +56,9 @@ if submitted:
     update_penguins['sex_female'] = np.zeros(update_penguins.shape[0])
 
     # Сортируем данные по столбцам так же, как в обучающих данных
-    update_penguins = update_penguins[X_train.columns]
+    with open("trained_models/columns.pkl", "rb") as f:
+        columns = pickle.load(f)
+        update_penguins = update_penguins[columns]
 
     # Делаем предсказания для новых данных
     y_pred = model.predict(update_penguins)
