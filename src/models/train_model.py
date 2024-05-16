@@ -21,3 +21,4 @@ print(f"\nModel score: {score}\n")
 
 # Сохранение обученной модели
 pickle.dump(model, open("trained_models/model_pickle.pkl", "wb"))
+pickle.dump(X_train.columns, open("trained_models/columns.pkl", "wb"))
