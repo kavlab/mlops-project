@@ -16,7 +16,7 @@ services:
     
   jenkins:
     container_name: mlops-jenkins
-    build: ./jenkins
+    image: "kavlab/mlops-jenkins:1.0"
     ports:
       - "4080:8080"
       - "4500:50000"
