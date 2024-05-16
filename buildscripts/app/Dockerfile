@@ -5,7 +5,7 @@ COPY src/ui/requirements.txt /tmp/
 RUN pip install -r /tmp/requirements.txt
 
 #Копирование файлов проекта
-COPY src/features/build_features.py /app/
+COPY src/features/build_features.py /app/src/features/
 COPY src/ui/*.py /app/
 COPY src/trained_models/* /app/trained_models/
 

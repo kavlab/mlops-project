@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import streamlit as st
-from build_features import get_transform_column
+from src.features.build_features import get_transform_column
 
 
 def get_model_load():
