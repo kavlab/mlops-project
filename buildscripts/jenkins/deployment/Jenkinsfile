@@ -58,7 +58,7 @@ pipeline {
             }
         }
 
-        stage('Application testing') {
+        stage('Test application') {
             steps {
                 dir('src') {
                     sh """. .venv/bin/activate
@@ -76,6 +76,11 @@ pipeline {
 
         stage('Run container') {
             steps {
+                sh """container_id=\$(docker ps -a -q -f name=mlops-app)
+                if [ -n "\$container_id" ]; then
+                  docker stop mlops-app
+                  docker rm mlops-app
+                fi"""
                 sh "docker run -d -p 4501:8501 --name mlops-app mlops-app:${env.BUILD_NUMBER}"
             }
         }
