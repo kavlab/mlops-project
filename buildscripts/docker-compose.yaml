@@ -14,12 +14,15 @@ services:
     
   jenkins:
     container_name: mlops-jenkins
-    image: "kavlab/mlops-jenkins:1.1"
+    image: "kavlab/mlops-jenkins:1.2"
     ports:
       - "4080:8080"
       - "4500:50000"
     volumes:
       - mlops_jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+    user: root
     networks:
       - mlops_network
 

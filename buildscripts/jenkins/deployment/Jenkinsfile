@@ -24,7 +24,7 @@ pipeline {
                     sh """python3 -m venv .venv
                     . .venv/bin/activate
                     pip install -r ./ui/requirements.txt
-                    pip install pytest"""
+                    pip install dvc dvc-s3 pytest"""
                 }
             }
         }
@@ -69,13 +69,14 @@ pipeline {
 
         stage('Build image') {
             steps {
-                sh """docker build -t mlops-app -f ./buildscripts/app/Dockerfile ."""
+                sh """tar czf repo.tar.gz *
+                docker build -t mlops-app:${env.BUILD_NUMBER} --file buildscripts/app/Dockerfile - < repo.tar.gz"""
             }
         }
 
-        stage('Deploy container') {
+        stage('Run container') {
             steps {
-                sh """docker run -d -p 4501:8501 --name mlops-app mlops-app"""
+                sh "docker run -d -p 4501:8501 --name mlops-app mlops-app:${env.BUILD_NUMBER}"
             }
         }
     }

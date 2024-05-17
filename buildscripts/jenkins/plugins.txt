@@ -15,3 +15,6 @@ git
 ssh-slaves
 matrix-auth
 pam-auth
+publish-over-ssh
+docker-plugin
+docker-workflow
