@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
   minio:
     container_name: mlops-minio
@@ -16,7 +14,7 @@ services:
     
   jenkins:
     container_name: mlops-jenkins
-    image: "kavlab/mlops-jenkins:1.0"
+    image: "kavlab/mlops-jenkins:1.1"
     ports:
       - "4080:8080"
       - "4500:50000"
