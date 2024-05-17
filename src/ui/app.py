@@ -5,6 +5,20 @@ import streamlit as st
 from src.features.build_features import get_transform_column
 
 
+ISLAND_LIST = ['Biscoe', 'Dream', 'Torgersen']
+BILL_LENGTH_MM_MIN = 20.0
+BILL_LENGTH_MM_MAX = 70.0
+BILL_DEPTH_MM_MIN = 10.0
+BILL_DEPTH_MM_MAX = 30.0
+FLIPPER_LENGTH_MM_MIN = 160.0
+FLIPPER_LENGTH_MM_MAX = 250.0
+BODY_MASS_G_MIN = 2000.0
+BODY_MASS_G_MAX = 8000.0
+SEX_LIST = ['male', 'female']
+YEAR_MIN = 2007
+YEAR_MAX = 2009
+
+
 def get_model_load():
     with open("trained_models/model_pickle.pkl", "rb") as f:
         model = pickle.load(f)
@@ -24,13 +38,23 @@ st.title("Предиктор вида пингвина")
 
 # Создаем форму для ввода данных
 with st.form("form"):
-    island = st.selectbox("Остров", ['Biscoe', 'Dream', 'Torgersen'])
-    bill_length_mm = st.number_input("Длина клюва (мм)", min_value=20.0, max_value=70.0)
-    bill_depth_mm = st.number_input("Глубина клюва (мм)", min_value=10.0, max_value=30.0)
-    flipper_length_mm = st.number_input("Длина ласт (мм)", min_value=160.0, max_value=250.0)
-    body_mass_g = st.number_input("Масса тела (г)", min_value=2000.0, max_value=8000.0)
-    sex = st.selectbox("Пол", ['male', 'female'])
-    year = st.number_input("Год", min_value=2007, max_value=2009)
+    island = st.selectbox("Остров", ISLAND_LIST)
+    bill_length_mm = st.number_input("Длина клюва (мм)",
+                                     min_value=BILL_LENGTH_MM_MIN,
+                                     max_value=BILL_LENGTH_MM_MAX)
+    bill_depth_mm = st.number_input("Глубина клюва (мм)",
+                                    min_value=BILL_DEPTH_MM_MIN,
+                                    max_value=BILL_DEPTH_MM_MAX)
+    flipper_length_mm = st.number_input("Длина ласт (мм)",
+                                        min_value=FLIPPER_LENGTH_MM_MIN,
+                                        max_value=FLIPPER_LENGTH_MM_MAX)
+    body_mass_g = st.number_input("Масса тела (г)",
+                                  min_value=BODY_MASS_G_MIN,
+                                  max_value=BODY_MASS_G_MAX)
+    sex = st.selectbox("Пол", SEX_LIST)
+    year = st.number_input("Год",
+                           min_value=YEAR_MIN,
+                           max_value=YEAR_MAX)
     submitted = st.form_submit_button("Узнать вид пингвина")
 
 # Делаем предсказание, если пользователь отправил форму
