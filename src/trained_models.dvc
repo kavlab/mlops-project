@@ -1,6 +1,6 @@
 outs:
-- md5: 9b7f99dc9dcada784557e3b4e04097c1.dir
-  size: 254072
+- md5: 746e820dc4416cc55657ef0369d2249e.dir
+  size: 259701
   nfiles: 2
   hash: md5
   path: trained_models
