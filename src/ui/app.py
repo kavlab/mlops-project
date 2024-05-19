@@ -17,6 +17,15 @@ SEX_LIST = ['male', 'female']
 YEAR_MIN = 2007
 YEAR_MAX = 2020
 
+SELBOX_ISLAND_KEY = "island"
+NUMINP_BILL_LENGTH_MM_KEY = "bill_length_mm"
+NUMINP_BILL_DEPTH_MM_KEY = "bill_depth_mm"
+NUMINP_FLIPPER_LENGTH_MM_KEY = "flipper_length_mm"
+NUMINP_BODY_MASS_G_KEY = "body_mass_g"
+SELBO_SEX_KEY = "sex"
+NUMINP_YEAR_KEY = "year"
+BTN_SUBMIT_KEY = "submit_btn"
+
 
 def get_model_load():
     with open("trained_models/model_pickle.pkl", "rb") as f:
@@ -104,25 +113,25 @@ with st.form(key="form"):
     st.session_state.is_error_form = False
     island = st.selectbox("Остров",
                           ISLAND_LIST,
-                          key="island")
+                          key=SELBOX_ISLAND_KEY)
     bill_length_mm = st.number_input("Длина клюва (мм)",
                                      value=BILL_LENGTH_MM_MIN,
-                                     key="bill_length_mm")
+                                     key=NUMINP_BILL_LENGTH_MM_KEY)
     bill_depth_mm = st.number_input("Глубина клюва (мм)",
                                     value=BILL_DEPTH_MM_MIN,
-                                    key="bill_depth_mm")
+                                    key=NUMINP_BILL_DEPTH_MM_KEY)
     flipper_length_mm = st.number_input("Длина ласт (мм)",
                                         value=FLIPPER_LENGTH_MM_MIN,
-                                        key="flipper_length_mm")
+                                        key=NUMINP_FLIPPER_LENGTH_MM_KEY)
     body_mass_g = st.number_input("Масса тела (г)",
                                   value=BODY_MASS_G_MIN,
-                                  key="body_mass_g")
+                                  key=NUMINP_BODY_MASS_G_KEY)
     sex = st.selectbox("Пол",
                        SEX_LIST,
-                       key="sex")
+                       key=SELBO_SEX_KEY)
     year = st.number_input("Год",
                            value=YEAR_MIN,
-                           key="year")
+                           key=NUMINP_YEAR_KEY)
     submitted = st.form_submit_button("Узнать вид пингвина")
 
 # Делаем предсказание, если пользователь отправил форму
