@@ -40,7 +40,7 @@ def test_anomalous_values_in_penguins():
     df1[['bill_length_mm', 'bill_depth_mm', 'body_mass_g']] = df1[['bill_length_mm', 'bill_depth_mm', 'body_mass_g']].astype('float64')
 
 
-    # Проверка на наличие аномальных значений в столбцах 2, 3, 5 и 7
+    # Проверка на наличие аномальных значений в столбцах 2, 3, 5
     z_scores = zscore(df1.iloc[:, [2, 3, 5]])
     abs_z_scores = np.abs(z_scores)
     threshold = 3
