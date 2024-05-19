@@ -74,6 +74,15 @@ pipeline {
             }
         }
 
+        stage('Data testing') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    pytest tests/*_data.py"""
+                }
+            }
+        }
+
         stage('Push data') {
             steps {
                 dir('src') {
@@ -107,7 +116,7 @@ pipeline {
             steps {
                 dir('src') {
                     sh """. .venv/bin/activate
-                    pytest tests/*.py"""
+                    pytest tests/*_model.py"""
                 }
             }
         }
