@@ -1,0 +1,94 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'S3_URL', defaultValue: 'http://mlops-minio:4000', description: '')
+    }
+
+    stages {
+        stage('Clean workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                git branch: 'dev', credentialsId: 'jenkins_ssh_github', url: 'git@github.com:kavlab/mlops-project.git'
+            }
+        }
+
+        stage('Prepare') {
+            steps {
+                dir('src') {
+                    sh """python3 -m venv .venv
+                    . .venv/bin/activate
+                    pip install -r ./ui/requirements.txt
+                    pip install dvc dvc-s3 pytest"""
+                }
+            }
+        }
+
+        stage('Configure DVC') {
+            steps {
+                dir('src') {
+                    withCredentials([usernamePassword(credentialsId: 'S3', passwordVariable: 'S3_SECRET_ACCESS_KEY', usernameVariable: 'S3_ACCESS_KEY_ID')]) {
+                        sh """. .venv/bin/activate
+                        cd ..
+                        dvc remote add -f -d model_storage s3://mlops-files/models
+                        dvc remote modify --local model_storage endpointurl ${params.S3_URL}
+                        dvc remote modify --local model_storage access_key_id ${S3_ACCESS_KEY_ID}
+                        dvc remote modify --local model_storage secret_access_key ${S3_SECRET_ACCESS_KEY}
+                        dvc remote modify --local model_storage use_ssl false
+                        """
+
+                        sh "rm -rf trained_models"
+                        sh "mkdir trained_models"
+                    }
+                }
+            }
+        }
+
+        stage('Pull model') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    dvc pull -r model_storage"""
+                }
+            }
+        }
+
+        stage('Test application') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    pytest ui/test_*.py"""
+                }
+            }
+        }
+
+        stage('Build image') {
+            steps {
+                sh """tar czf repo.tar.gz *
+                docker build -t mlops-app:${env.BUILD_NUMBER} --file buildscripts/app/Dockerfile - < repo.tar.gz"""
+            }
+        }
+
+        stage('Run container') {
+            steps {
+                sh """container_id=\$(docker ps -a -q -f name=mlops-app)
+                if [ -n "\$container_id" ]; then
+                  docker stop mlops-app
+                  docker rm mlops-app
+                fi"""
+                sh "docker run -d -p 4501:8501 --name mlops-app mlops-app:${env.BUILD_NUMBER}"
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}

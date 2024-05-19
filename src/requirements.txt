@@ -1,0 +1,6 @@
+pandas
+numpy
+palmerpenguins
+scikit-learn
+dvc
+dvc-s3

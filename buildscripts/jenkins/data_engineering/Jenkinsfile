@@ -1,0 +1,141 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'S3_URL', defaultValue: 'http://mlops-minio:4000', description: '')
+    }
+
+    stages {
+        stage('Clean workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                git branch: 'dev', credentialsId: 'jenkins_ssh_github', url: 'git@github.com:kavlab/mlops-project.git'
+            }
+        }
+
+        stage('Prepare') {
+            steps {
+                dir('src') {
+                    sh """python3 -m venv .venv
+                    . .venv/bin/activate
+                    pip install -r ./requirements.txt
+                    pip install pytest"""
+                }
+            }
+        }
+
+        stage('Configure DVC') {
+            steps {
+                dir('src') {
+                    withCredentials([usernamePassword(credentialsId: 'S3', passwordVariable: 'S3_SECRET_ACCESS_KEY', usernameVariable: 'S3_ACCESS_KEY_ID')]) {
+                        sh """. .venv/bin/activate
+                        cd ..
+                        dvc remote add -f -d data_storage s3://mlops-files/data
+                        dvc remote modify --local data_storage endpointurl ${params.S3_URL}
+                        dvc remote modify --local data_storage access_key_id ${S3_ACCESS_KEY_ID}
+                        dvc remote modify --local data_storage secret_access_key ${S3_SECRET_ACCESS_KEY}
+                        dvc remote modify --local data_storage use_ssl false
+                        dvc remote add -f -d model_storage s3://mlops-files/models
+                        dvc remote modify --local model_storage endpointurl ${params.S3_URL}
+                        dvc remote modify --local model_storage access_key_id ${S3_ACCESS_KEY_ID}
+                        dvc remote modify --local model_storage secret_access_key ${S3_SECRET_ACCESS_KEY}
+                        dvc remote modify --local model_storage use_ssl false
+                        """
+
+                        sh "rm -rf datasets"
+                        sh "mkdir datasets"
+                        sh "rm -rf trained_models"
+                        sh "mkdir trained_models"
+                    }
+                }
+            }
+        }
+
+        stage('Load data') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    python3 ./data/load_dataset.py"""
+                }
+            }
+        }
+
+        stage('Data processing') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    python3 ./features/build_features.py"""
+                }
+            }
+        }
+
+        stage('Push data') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    dvc add datasets
+                    dvc push -r data_storage"""
+                }
+            }
+        }
+
+        stage('Commit data changes') {
+            steps {
+                sh 'git add src/datasets.dvc'
+                sh 'git commit -m "change dataset" || true'
+                sshagent(['jenkins_ssh_github']) {
+                    sh 'git push origin dev'
+                }
+            }
+        }
+
+        stage('Model training') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    python3 ./models/train_model.py"""
+                }
+            }
+        }
+
+        stage('Model testing') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    pytest tests/*.py"""
+                }
+            }
+        }
+
+        stage('Push model') {
+            steps {
+                dir('src') {
+                    sh """. .venv/bin/activate
+                    dvc add trained_models
+                    dvc push -r model_storage"""
+                }
+            }
+        }
+
+        stage('Commit model changes') {
+            steps {
+                sh 'git add src/trained_models.dvc'
+                sh 'git commit -m "change model" || true'
+                sshagent(['jenkins_ssh_github']) {
+                    sh 'git push origin dev'
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}

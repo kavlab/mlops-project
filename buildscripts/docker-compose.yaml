@@ -1,0 +1,33 @@
+services:
+  minio:
+    container_name: mlops-minio
+    build: ./minio
+    ports:
+      - "4000:9000"  # Port for S3 Client Requests
+      - "4001:9001"  # Port for the MinIO Console
+    env_file:
+      - ./minio/default.env
+    volumes:
+      - mlops_minio_data:/data
+    networks:
+      - mlops_network
+    
+  jenkins:
+    container_name: mlops-jenkins
+    image: "kavlab/mlops-jenkins:1.2"
+    ports:
+      - "4080:8080"
+      - "4500:50000"
+    volumes:
+      - mlops_jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+    user: root
+    networks:
+      - mlops_network
+
+volumes:
+  mlops_minio_data:
+  mlops_jenkins_home:
+networks:
+  mlops_network:
